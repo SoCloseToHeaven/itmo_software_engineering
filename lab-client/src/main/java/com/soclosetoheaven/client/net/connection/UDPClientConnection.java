@@ -1,6 +1,6 @@
 package com.soclosetoheaven.client.net.connection;
 
-import com.soclosetoheaven.common.net.connections.SimpleConnection;
+import com.soclosetoheaven.common.net.connection.SimpleConnection;
 import com.soclosetoheaven.common.net.messaging.Request;
 import com.soclosetoheaven.common.net.messaging.Response;
 import org.apache.commons.lang3.SerializationUtils;
@@ -26,7 +26,8 @@ public class UDPClientConnection implements SimpleConnection<Response, Request> 
         channel = DatagramChannel.open();
         connect(addr, port);
         buffer = ByteBuffer.allocate(BUFFER_SIZE);
-        channel.configureBlocking(false); // non-blocking mode
+        channel.configureBlocking(true);
+        //channel.configureBlocking(false); // non-blocking mode
     }
 
 
@@ -45,15 +46,7 @@ public class UDPClientConnection implements SimpleConnection<Response, Request> 
 
     public byte[] getData() throws IOException { // method is needed to provide non-blocking channel mode
         ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
-        SocketAddress address = null;
-        long timeoutChecker = System.currentTimeMillis() + CONNECTION_TIMEOUT;
-        // var is needed to check connection for timeout
-        while (address == null && (timeoutChecker - System.currentTimeMillis()) >= 0) {
-            // желательно тут чёт написать клиенту, может быть точечки вывести
-            address = channel.receive(buffer);
-        }
-        if (timeoutChecker < 0)
-            throw new IOException("Server connection timeout!");
+        channel.receive(buffer);
         return buffer.array();
     }
 

@@ -2,7 +2,7 @@ package com.soclosetoheaven.common.model;
 
 
 
-import com.soclosetoheaven.common.exceptions.InvalidFieldValueException;
+import com.soclosetoheaven.common.exception.InvalidFieldValueException;
 
 import com.soclosetoheaven.common.util.AbstractValidator;
 
@@ -59,6 +59,25 @@ public class Dragon implements Serializable, Comparable<Dragon> {
         Validator.validate(this);
     }
 
+
+    public Dragon(String... args) {
+        this(
+                args[NAME_INDEX],
+                new Coordinates(
+                        Integer.parseInt(args[X_INDEX]),
+                        Integer.parseInt(args[Y_INDEX])
+                ),
+                Long.parseLong(args[AGE_INDEX]),
+                args[DESCRIPTION_INDEX],
+                Integer.parseInt(args[WINGSPAN_INDEX]),
+                DragonType.parseDragonType(args[TYPE_INDEX]),
+                new DragonCave(
+                        Long.parseLong(args[DEPTH_INDEX]),
+                        Integer.parseInt(args[TREASURES_INDEX])
+                )
+        );
+    }
+
     public Dragon(int id,
                   String name,
                   Coordinates coordinates,
@@ -96,7 +115,7 @@ public class Dragon implements Serializable, Comparable<Dragon> {
         return this.coordinates;
     }
 
-    public Dragon setCoordinates(Integer x, double y) {
+    public Dragon setCoordinates(Integer x, int y) {
         coordinates.setCoordinates(x,y);
         return this;
     }
@@ -140,7 +159,7 @@ public class Dragon implements Serializable, Comparable<Dragon> {
 
     public void update(String name,
                        Integer x,
-                       double y,
+                       int y,
                        Long age,
                        String desc,
                        Integer wingspan,
@@ -155,6 +174,21 @@ public class Dragon implements Serializable, Comparable<Dragon> {
                 setWingspan(wingspan).
                 setType(type).
                 setCave(depth, numberOfTreasures);
+    }
+
+
+    public void update(Dragon dragon) {
+        this.update(
+                dragon.getName(),
+                dragon.getCoordinates().getX(),
+                dragon.getCoordinates().getY(),
+                dragon.getAge(),
+                dragon.getDescription(),
+                dragon.getWingspan(),
+                dragon.getType(),
+                dragon.getCave().getDepth(),
+                dragon.getCave().getNumberOfTreasures()
+                );
     }
 
     @Override
@@ -317,4 +351,17 @@ public class Dragon implements Serializable, Comparable<Dragon> {
     public int hashCode() {
         return Objects.hash(id, name, coordinates, creationDate, age, description, wingspan, type, cave);
     }
+
+    public static final int ARGS_COUNT = 9;
+    public static final int NAME_INDEX = 0;
+    public static final int X_INDEX = 1;
+    public static final int Y_INDEX = 2;
+    public static final int AGE_INDEX = 3;
+    public static final int DESCRIPTION_INDEX = 4;
+    public static final int WINGSPAN_INDEX = 5;
+    public static final int TYPE_INDEX = 6;
+
+    public static final int DEPTH_INDEX = 7;
+    public static final int TREASURES_INDEX = 8;
+
 }

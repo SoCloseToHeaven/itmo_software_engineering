@@ -1,7 +1,7 @@
 package com.soclosetoheaven.common.model;
 
 
-import com.soclosetoheaven.common.exceptions.InvalidFieldValueException;
+import com.soclosetoheaven.common.exception.InvalidFieldValueException;
 import com.soclosetoheaven.common.util.AbstractValidator;
 
 import java.io.Serial;

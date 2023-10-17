@@ -1,6 +1,5 @@
 package com.soclosetoheaven.server;
 
-import com.soclosetoheaven.common.io.BasicIO;
 
 
 import java.io.*;
@@ -17,23 +16,22 @@ public final class ServerApp {
 
     private static volatile boolean running;
 
-
-    private static final BasicIO io = new BasicIO();
-
     public static void main(String[] args) {
+        System.setProperty("file.encoding", "UTF-8");
+        System.setProperty("client.encoding.override", "UTF-8");
         String configPath = System.getenv("SERVER_LOGGER_CONFIG");
         if (configPath == null) {
-            io.writeErr("Unable to load logger config, stopping program!");
+            System.err.println("Unable to load logger config, stopping program!");
             return;
         }
         try {
             configureLogger(configPath);
-            ServerInstance server = new ServerInstance(io);
+            ServerInstance server = new ServerInstance();
             running = true;
             server.launch();
         } catch (IOException | SecurityException e) {
-            io.writeErr(e.getMessage());
-            io.writeErr("Unable to start server!");
+            System.err.println(e.getMessage());
+            System.err.println("Unable to start server!");
         }
     }
 

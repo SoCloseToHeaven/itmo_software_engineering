@@ -1,12 +1,12 @@
 package com.soclosetoheaven.server.net.auth;
 
-import com.soclosetoheaven.common.exceptions.InvalidRequestException;
-import com.soclosetoheaven.common.exceptions.ManagingException;
+import com.soclosetoheaven.common.exception.InvalidRequestException;
+import com.soclosetoheaven.common.exception.ManagingException;
 import com.soclosetoheaven.common.net.auth.User;
 import com.soclosetoheaven.common.net.auth.UserManager;
-import com.soclosetoheaven.common.exceptions.InvalidAuthCredentialsException;
+import com.soclosetoheaven.common.exception.InvalidAuthCredentialsException;
 import com.soclosetoheaven.common.net.auth.AuthCredentials;
-import com.soclosetoheaven.common.net.factory.ResponseFactory;
+import com.soclosetoheaven.common.net.messaging.Messages;
 import com.soclosetoheaven.common.net.messaging.RequestBody;
 import com.soclosetoheaven.common.net.messaging.Response;
 import com.soclosetoheaven.server.dao.SQLUserDAO;
@@ -35,12 +35,8 @@ public class SQLUserManager implements UserManager {
                 .stream()
                 .filter(user -> user.getAuthCredentials().equals(authCredentials))
                 .findFirst().orElseThrow(InvalidAuthCredentialsException::new);
-        if (loggedUser.isAdmin())
-            return ResponseFactory.createResponse("ADMIN LOGGED, WELCOME: %s"
-                    .formatted(loggedUser.getName())
-            );
-        return ResponseFactory.createResponse("Successfully logged, welcome: %s"
-                .formatted(loggedUser.getName())
+        return new Response(
+                Messages.LOGGED_IN.key
         );
     }
 
@@ -57,18 +53,18 @@ public class SQLUserManager implements UserManager {
                 .map(AuthCredentials::getLogin)
                 .anyMatch(elem -> elem.equals(authCredentials.getLogin()))
         )
-            throw new InvalidAuthCredentialsException("This login is already taken, try a new one!");
+            throw new InvalidAuthCredentialsException(Messages.LOGIN_TAKEN.key);
         User user = new User(name, authCredentials);
         int id = dao.create(user);
         if (id == SQLUserDAO.ERROR_CODE)
-            throw new ManagingException("Error occurred while registering user, try again later!");
+            throw new ManagingException(Messages.MANAGING_ERROR.key);
         user.setID(id);
         collection.add(user);
-        return ResponseFactory.createResponse("Successfully registered");
+        return new Response(Messages.SUCCESSFULLY.key);
     }
 
     @Override
-    public User getUserByID(Long id) {
+    public User getUserByID(int id) {
         Optional<User> user = collection
                 .stream()
                 .filter(elem -> elem.getID() == id)

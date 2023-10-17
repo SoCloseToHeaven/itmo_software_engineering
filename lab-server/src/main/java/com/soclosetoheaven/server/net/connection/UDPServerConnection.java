@@ -1,6 +1,6 @@
 package com.soclosetoheaven.server.net.connection;
 
-import com.soclosetoheaven.common.net.connections.SimpleConnection;
+import com.soclosetoheaven.common.net.connection.SimpleConnection;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 

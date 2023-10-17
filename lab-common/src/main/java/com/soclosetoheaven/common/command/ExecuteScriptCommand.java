@@ -1,9 +1,10 @@
 package com.soclosetoheaven.common.command;
 
-import com.soclosetoheaven.common.exceptions.ExecutingScriptException;
-import com.soclosetoheaven.common.exceptions.InvalidCommandArgumentException;
-import com.soclosetoheaven.common.exceptions.ManagingException;
+import com.soclosetoheaven.common.exception.ExecutingScriptException;
+import com.soclosetoheaven.common.exception.InvalidCommandArgumentException;
+import com.soclosetoheaven.common.exception.ManagingException;
 import com.soclosetoheaven.common.io.BasicIO;
+import com.soclosetoheaven.common.net.messaging.Messages;
 import com.soclosetoheaven.common.net.messaging.Request;
 import com.soclosetoheaven.common.net.messaging.RequestBody;
 import com.soclosetoheaven.common.net.messaging.Response;
@@ -18,11 +19,13 @@ import java.nio.file.Path;
 import java.util.HashSet;
 
 public class ExecuteScriptCommand extends AbstractCommand{
+
+    public static final String NAME = "execute_script";
     private static final HashSet<File> OPENED_FILES = new HashSet<>();
     private final BasicIO io;
 
     public ExecuteScriptCommand(BasicIO io) {
-        super("execute_script");
+        super(NAME);
         this.io = io;
     }
 
@@ -38,7 +41,7 @@ public class ExecuteScriptCommand extends AbstractCommand{
             throw new InvalidCommandArgumentException();
         Path file = Path.of(args[FIRST_ARG]);
         if (OPENED_FILES.contains(file.toFile()))
-            throw new ExecutingScriptException("Recursion alert, script execution canceled");
+            throw new ExecutingScriptException(Messages.EXECUTING_SCRIPT_RECURSION.key);
         try {
             BufferedReader reader = new BufferedReader(new FileReader(URLDecoder.decode(args[0], StandardCharsets.UTF_8))) {
                 @Override
@@ -50,17 +53,13 @@ public class ExecuteScriptCommand extends AbstractCommand{
             OPENED_FILES.add(file.toFile());
             io.add(reader);
         } catch (IOException e) {
-            e.printStackTrace();
-            throw new ExecutingScriptException(e.getMessage());
+            throw new ExecutingScriptException(Messages.EXECUTING_SCRIPT_ERROR.key);
         }
         return null;
     }
 
     @Override
     public String getUsage() {
-        return "%s%s".formatted(
-                "execute_script {filepath}",
-                " - runs script from your file."
-        );
+        return "runs script from your file.";
     }
 }

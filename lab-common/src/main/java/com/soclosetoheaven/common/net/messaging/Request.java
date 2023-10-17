@@ -19,6 +19,10 @@ public class Request implements Serializable {
         this.requestBody = requestBody;
     }
 
+    public Request(String commandName) {
+        this(commandName, new RequestBody());
+    }
+
     public RequestBody getRequestBody() {
         return requestBody;
     }

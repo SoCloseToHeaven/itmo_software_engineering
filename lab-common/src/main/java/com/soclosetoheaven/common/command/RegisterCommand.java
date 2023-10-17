@@ -1,8 +1,8 @@
 package com.soclosetoheaven.common.command;
 
-import com.soclosetoheaven.common.exceptions.InvalidAuthCredentialsException;
-import com.soclosetoheaven.common.exceptions.InvalidCommandArgumentException;
-import com.soclosetoheaven.common.exceptions.ManagingException;
+import com.soclosetoheaven.common.exception.InvalidAuthCredentialsException;
+import com.soclosetoheaven.common.exception.InvalidCommandArgumentException;
+import com.soclosetoheaven.common.exception.ManagingException;
 import com.soclosetoheaven.common.io.BasicIO;
 import com.soclosetoheaven.common.net.auth.AuthCredentials;
 import com.soclosetoheaven.common.net.auth.User;
@@ -17,11 +17,19 @@ import java.util.regex.Pattern;
 
 public class RegisterCommand extends AbstractCommand{
 
+
+    public static final String NAME = "register";
+
     private final UserManager userManager;
     private final BasicIO io;
 
+
+    public RegisterCommand() {
+        this(null, null);
+    }
+
     public RegisterCommand(UserManager userManager, BasicIO io) {
-        super("register");
+        super(NAME);
         this.userManager = userManager;
         this.io = io;
     }

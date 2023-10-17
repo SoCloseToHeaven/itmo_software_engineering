@@ -1,15 +1,15 @@
 package com.soclosetoheaven.server;
 
 
-import com.soclosetoheaven.common.exceptions.ManagingException;
+import com.soclosetoheaven.common.exception.ManagingException;
 import com.soclosetoheaven.common.net.auth.UserManager;
-import com.soclosetoheaven.common.net.factory.ResponseFactory;
+import com.soclosetoheaven.common.net.messaging.ResponseWithCollection;
+import com.soclosetoheaven.common.net.messaging.ResponseWithException;
 import com.soclosetoheaven.server.dao.JDBCDragonDAO;
-import com.soclosetoheaven.common.collectionmanagers.DragonCollectionManager;
+import com.soclosetoheaven.common.collectionmanager.DragonCollectionManager;
 import com.soclosetoheaven.server.collectionmanager.SynchronizedSQLCollectionManager;
-import com.soclosetoheaven.common.commandmanagers.ServerCommandManager;
+import com.soclosetoheaven.server.commandmanager.ServerCommandManager;
 
-import com.soclosetoheaven.common.io.BasicIO;
 import com.soclosetoheaven.server.dao.JDBCUserDAO;
 import com.soclosetoheaven.server.dao.SQLDragonDAO;
 import com.soclosetoheaven.server.dao.SQLUserDAO;
@@ -37,12 +37,14 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
-import static com.soclosetoheaven.common.net.connections.SimpleConnection.LAST_PACKET_TOKEN;
+import static com.soclosetoheaven.common.net.connection.SimpleConnection.LAST_PACKET_TOKEN;
 
 
 public class ServerInstance{
 
     private static final int PORT = 34684;
+
+    private static final long CLIENT_THREAD_KILL_TIME = 120_000;
 
 
     private final UDPServerConnection connection;
@@ -51,18 +53,17 @@ public class ServerInstance{
 
     private UserManager userManager;
 
-    private final BasicIO io;
-
     private final Lock serializationLock = new ReentrantLock();
+
+    private final Lock clientsMapLock = new ReentrantLock();
 
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
     private final Map<SocketAddress, ClientHandler> clients = new HashMap<>();
 
-    public ServerInstance(BasicIO io) throws SocketException {
+    public ServerInstance() throws SocketException {
         connection = new UDPServerConnection(PORT);
-        this.io = io;
     }
 
     public void launch() {
@@ -71,6 +72,12 @@ public class ServerInstance{
             SQLUserDAO userDAO = new JDBCUserDAO(initializeSQLConnection());
             this.userManager = new SynchronizedSQLUserManager(userDAO);
             collectionManager = new SynchronizedSQLCollectionManager(dragonDAO);
+            collectionManager.registerObserver((list) ->
+                clients.values().forEach(client -> client.sendResponse(
+                        new ResponseWithCollection(list)
+                        )
+                )
+            );
         } catch (SQLException | IOException e) {
             ServerApp.log(Level.SEVERE, "%s - server shutdown".formatted(e.getMessage()));
             return;
@@ -78,6 +85,23 @@ public class ServerInstance{
         ServerApp.log(Level.INFO, collectionManager.toString());
         Thread dataReceiver = new Thread(new ConnectionHandler());
         dataReceiver.start();
+        Timer clientThreadKiller = new Timer(true);
+        clientThreadKiller.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    clientsMapLock.lock();
+                    Set<ClientHandler> oldSet = new HashSet<>(clients.values());
+                    oldSet.forEach(client -> {
+                        if (System.currentTimeMillis() - client.getLastInteraction() >= CLIENT_THREAD_KILL_TIME) {
+                            client.interrupt();
+                            clients.remove(client.getSocketAddress());
+                        }
+                    });
+                    clientsMapLock.unlock();
+                }
+            },
+                CLIENT_THREAD_KILL_TIME
+        );
     }
 
     private class ClientHandler{
@@ -86,9 +110,10 @@ public class ServerInstance{
 
         private final LinkedList<byte[]> buffers = new LinkedList<>();
 
-        private Response response;
-
         private final Thread thread;
+
+        private long lastInteraction;
+
 
         ClientHandler(SocketAddress client) {
             this.client = client;
@@ -123,34 +148,50 @@ public class ServerInstance{
                     try {
                         response = taskCommandManager.manage(request);
                     } catch (ManagingException e) {
-                        response = ResponseFactory.createResponseWithException(e);
+                        response = new ResponseWithException(e);
                     }
-                    this.response = response;
-                    executor.execute(this::sendResponse);
+                    sendResponse(response);
                 } catch (SerializationException | InterruptedException e) {
                     ServerApp.log(Level.SEVERE, e.getMessage());
                 }
         }
 
         synchronized void put(byte[] buf) {
+            lastInteraction = System.currentTimeMillis();
             buffers.add(buf);
             if (buf[connection.MAX_PACKET_SIZE] == LAST_PACKET_TOKEN)
                 notify();
         }
 
-        public void sendResponse() {
-            try {
-                serializationLock.lock();
-                byte[] serializedResponse = SerializationUtils.serialize(response);
-                serializationLock.unlock();
-                connection.sendData(new ImmutablePair<>(
-                            client,
-                            serializedResponse
-                    )
-                );
-            } catch (IOException e) {
-                ServerApp.log(Level.SEVERE, e.getMessage());
+        public void sendResponse(Response response) {
+            executor.execute(() -> {
+                try {
+                    serializationLock.lock();
+                    byte[] serializedResponse = SerializationUtils.serialize(response);
+                    serializationLock.unlock();
+                    connection.sendData(new ImmutablePair<>(
+                                client,
+                                serializedResponse
+                        )
+                    );
+                } catch (IOException e) {
+                    ServerApp.log(Level.SEVERE, e.getMessage());
+                }
             }
+            );
+        }
+
+        public void interrupt() {
+            if (!thread.isInterrupted())
+                this.thread.interrupt();
+        }
+
+        public synchronized long getLastInteraction() {
+            return lastInteraction;
+        }
+
+        public SocketAddress getSocketAddress() {
+            return this.client;
         }
     }
 
@@ -162,9 +203,11 @@ public class ServerInstance{
                     Pair<SocketAddress, byte[]> pair = connection.waitAndGetData();
                     SocketAddress client = pair.getLeft();
                     byte[] packet = pair.getRight();
+                    clientsMapLock.lock();
                     if (!clients.containsKey(client))
                         clients.put(client, new ClientHandler(client));
                     clients.get(client).put(packet);
+                    clientsMapLock.unlock();
                 } catch (IOException e) {
                     ServerApp.log(Level.SEVERE, e.getMessage());
                 }

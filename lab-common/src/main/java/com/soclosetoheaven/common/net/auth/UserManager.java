@@ -1,9 +1,6 @@
 package com.soclosetoheaven.common.net.auth;
 
-import com.soclosetoheaven.common.collectionmanagers.CollectionManager;
-import com.soclosetoheaven.common.exceptions.InvalidAuthCredentialsException;
-import com.soclosetoheaven.common.exceptions.InvalidRequestException;
-import com.soclosetoheaven.common.exceptions.ManagingException;
+import com.soclosetoheaven.common.exception.ManagingException;
 import com.soclosetoheaven.common.net.messaging.RequestBody;
 import com.soclosetoheaven.common.net.messaging.Response;
 
@@ -18,7 +15,7 @@ public interface UserManager {
      * @param id user's id
      * @return null if user with such id is not present
      */
-    User getUserByID(Long id);
+    User getUserByID(int id);
 
     /**
      *

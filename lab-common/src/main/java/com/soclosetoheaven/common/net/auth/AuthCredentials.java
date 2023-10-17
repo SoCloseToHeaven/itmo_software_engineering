@@ -2,10 +2,13 @@ package com.soclosetoheaven.common.net.auth;
 
 
 
+import com.soclosetoheaven.common.exception.InvalidAuthCredentialsException;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 public class AuthCredentials implements Serializable {
     @Serial

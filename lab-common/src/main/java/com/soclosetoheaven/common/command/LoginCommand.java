@@ -1,8 +1,8 @@
 package com.soclosetoheaven.common.command;
 
-import com.soclosetoheaven.common.exceptions.InvalidAuthCredentialsException;
-import com.soclosetoheaven.common.exceptions.InvalidCommandArgumentException;
-import com.soclosetoheaven.common.exceptions.ManagingException;
+import com.soclosetoheaven.common.exception.InvalidAuthCredentialsException;
+import com.soclosetoheaven.common.exception.InvalidCommandArgumentException;
+import com.soclosetoheaven.common.exception.ManagingException;
 import com.soclosetoheaven.common.io.BasicIO;
 import com.soclosetoheaven.common.net.auth.AuthCredentials;
 import com.soclosetoheaven.common.net.auth.UserManager;
@@ -12,16 +12,20 @@ import com.soclosetoheaven.common.net.messaging.Response;
 import com.soclosetoheaven.common.util.PasswordHasher;
 import com.soclosetoheaven.common.util.TerminalColors;
 
-import java.util.stream.IntStream;
 
 public class LoginCommand extends AbstractCommand{
+
+    public static final String NAME = "login";
 
     private final UserManager userManager;
 
     private final BasicIO io;
 
+    public LoginCommand() {
+        this(null, null);
+    }
     public LoginCommand(UserManager userManager, BasicIO io) {
-        super("login");
+        super(NAME);
         this.userManager = userManager;
         this.io = io;
     }

@@ -1,10 +1,9 @@
 package com.soclosetoheaven.common.command;
 
-import com.soclosetoheaven.common.exceptions.ManagingException;
+import com.soclosetoheaven.common.exception.ManagingException;
 import com.soclosetoheaven.common.net.messaging.Request;
 import com.soclosetoheaven.common.net.messaging.RequestBody;
 import com.soclosetoheaven.common.net.messaging.Response;
-import com.soclosetoheaven.common.net.factory.RequestFactory;
 
 public abstract class AbstractCommand {
 
@@ -21,14 +20,14 @@ public abstract class AbstractCommand {
     public abstract Response execute(RequestBody requestBody) throws ManagingException;
 
     public Request toRequest(String[] args) throws ManagingException {
-        return RequestFactory.createRequest(getName(), args);
+        return new Request(getName(), new RequestBody(args));
     }
 
     public String getName() {
         return name;
     }
 
-    abstract String getUsage();
+     public abstract String getUsage();
 
     @Override
     public String toString() {

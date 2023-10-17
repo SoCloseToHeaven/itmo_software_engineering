@@ -1,6 +1,8 @@
 package com.soclosetoheaven.common.util;
 
 
+import com.soclosetoheaven.common.net.messaging.Messages;
+
 import java.util.ArrayList;
 
 /**
@@ -17,13 +19,15 @@ public class LRUCache<T> {
 
     private final int maxSize;
 
+    private static final int MIN_SIZE = 0;
+
     /**
      *
      * @param maxSize maximum size of collection, can't be lower than zero or equal to it
      * @throws IllegalArgumentException if {@link #maxSize} is lower than zero or equal to it
      */
     public LRUCache(int maxSize) {
-        if (maxSize <= 0)
+        if (maxSize <= MIN_SIZE)
             throw new IllegalArgumentException("Illegal capacity: %d".formatted(maxSize));
         this.maxSize = maxSize;
     }
@@ -48,8 +52,8 @@ public class LRUCache<T> {
 
     @Override
     public String toString() {
-        if (size() == 0)
-            return "Empty";
+        if (array.isEmpty())
+            return Messages.EMPTY.key;
         StringBuilder builder = new StringBuilder();
         this.array.forEach(elem -> builder.append("%s ".formatted(elem.toString())));
         return builder.toString();

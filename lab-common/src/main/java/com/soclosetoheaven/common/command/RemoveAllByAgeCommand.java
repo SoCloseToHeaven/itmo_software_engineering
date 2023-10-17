@@ -1,23 +1,29 @@
 package com.soclosetoheaven.common.command;
 
-import com.soclosetoheaven.common.collectionmanagers.DragonCollectionManager;
-import com.soclosetoheaven.common.exceptions.InvalidCommandArgumentException;
-import com.soclosetoheaven.common.exceptions.InvalidRequestException;
-import com.soclosetoheaven.common.exceptions.ManagingException;
+import com.soclosetoheaven.common.collectionmanager.DragonCollectionManager;
+import com.soclosetoheaven.common.exception.InvalidCommandArgumentException;
+import com.soclosetoheaven.common.exception.InvalidRequestException;
+import com.soclosetoheaven.common.exception.ManagingException;
+import com.soclosetoheaven.common.model.Dragon;
 import com.soclosetoheaven.common.net.auth.User;
 import com.soclosetoheaven.common.net.auth.UserManager;
-import com.soclosetoheaven.common.net.factory.ResponseFactory;
+import com.soclosetoheaven.common.net.messaging.Messages;
 import com.soclosetoheaven.common.net.messaging.Request;
 import com.soclosetoheaven.common.net.messaging.RequestBody;
 import com.soclosetoheaven.common.net.messaging.Response;
 
+import java.util.List;
 
-public class RemoveAllByAgeCommand extends AbstractCommand{
+
+public class RemoveAllByAgeCommand extends AbstractCommand {
+
+
+    public static final String NAME = "remove_all_by_age";
     private final DragonCollectionManager collectionManager;
 
     private final UserManager userManager;
     public RemoveAllByAgeCommand(DragonCollectionManager collectionManager, UserManager userManager) {
-        super("remove_all_by_age");
+        super(NAME);
         this.collectionManager = collectionManager;
         this.userManager = userManager;
     }
@@ -37,12 +43,13 @@ public class RemoveAllByAgeCommand extends AbstractCommand{
 
         User user = userManager.getUserByAuthCredentials(requestBody.getAuthCredentials());
 
-        collectionManager
+        List<Dragon> toDelete = collectionManager
                 .getCollection().stream()
                 .filter(elem -> elem.getCreatorId() == user.getID())
                 .filter(elem -> elem.getAge() == age)
-                .forEach(elem -> collectionManager.removeByID(elem.getID()));
-        return ResponseFactory.createResponse("Removed elements with age: %s".formatted(age));
+                .toList();
+        collectionManager.removeAll(toDelete);
+        return new Response(Messages.REMOVED_ALL_POSSIBLE_ELEMENTS.key);
     }
 
     @Override

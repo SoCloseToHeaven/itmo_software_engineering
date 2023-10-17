@@ -1,7 +1,7 @@
 package com.soclosetoheaven.common.util;
 
 
-import com.soclosetoheaven.common.exceptions.InvalidFieldValueException;
+import com.soclosetoheaven.common.exception.InvalidFieldValueException;
 
 import java.io.Serializable;
 

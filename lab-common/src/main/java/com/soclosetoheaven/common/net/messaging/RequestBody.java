@@ -17,6 +17,10 @@ public class RequestBody implements Serializable {
         this.args = args;
     }
 
+    public RequestBody() {
+        this(null);
+    }
+
     public String[] getArgs() {
         return args;
     }

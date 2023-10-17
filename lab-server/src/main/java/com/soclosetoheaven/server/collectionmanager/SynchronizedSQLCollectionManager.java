@@ -1,6 +1,7 @@
 package com.soclosetoheaven.server.collectionmanager;
 
-import com.soclosetoheaven.common.collectionmanagers.DragonCollectionManager;
+import com.soclosetoheaven.common.collectionmanager.DragonCollectionManager;
+import com.soclosetoheaven.common.util.Observer;
 import com.soclosetoheaven.server.dao.SQLDragonDAO;
 import com.soclosetoheaven.common.model.Dragon;
 
@@ -18,10 +19,13 @@ public class SynchronizedSQLCollectionManager implements DragonCollectionManager
 
     private final SQLDragonDAO dao;
 
+    private final List<Observer<List<Dragon>>> observers;
+
     public SynchronizedSQLCollectionManager(SQLDragonDAO dao) throws SQLException {
         this.lock = new ReentrantReadWriteLock();
         this.dao = dao;
         this.collection = dao.readAll();
+        this.observers = new ArrayList<>();
     }
 
     @Override
@@ -43,6 +47,7 @@ public class SynchronizedSQLCollectionManager implements DragonCollectionManager
             dragon.setID(returnedValue);
             collection.add(dragon);
             flag = true;
+            notifyObservers();
         }
         lock.writeLock().unlock();
         return flag;
@@ -52,8 +57,10 @@ public class SynchronizedSQLCollectionManager implements DragonCollectionManager
     public Dragon remove(int index) {
         Dragon dragon = null;
         lock.writeLock().lock();
-        if (index < collection.size() && dao.delete((dragon = collection.get(index))) != SQLDragonDAO.ERROR_CODE)
+        if (index < collection.size() && dao.delete((dragon = collection.get(index))) != SQLDragonDAO.ERROR_CODE) {
             collection.remove(index);
+            notifyObservers();
+        }
         lock.writeLock().unlock();
         return dragon;
     }
@@ -75,6 +82,7 @@ public class SynchronizedSQLCollectionManager implements DragonCollectionManager
         if (dao.delete(collection) != SQLDragonDAO.ERROR_CODE) {
             collection.clear();
             flag = true;
+            notifyObservers();
         }
         lock.writeLock().unlock();
         return flag;
@@ -99,6 +107,7 @@ public class SynchronizedSQLCollectionManager implements DragonCollectionManager
         if (dragon != null && dao.delete(dragon) != SQLDragonDAO.ERROR_CODE) {
             collection.remove(dragon);
             flag = true;
+            notifyObservers();
         }
         lock.writeLock().unlock();
         return flag;
@@ -115,8 +124,10 @@ public class SynchronizedSQLCollectionManager implements DragonCollectionManager
                 .orElse(null);
         if (element != null && dao.update(dragon.setID(element.getID())) != SQLDragonDAO.ERROR_CODE) {
             collection.remove(element);
+            dragon.setCreatorId(element.getCreatorId());
             collection.add(dragon);
             flag = true;
+            notifyObservers();
         }
         lock.writeLock().unlock();
         return flag;
@@ -134,18 +145,14 @@ public class SynchronizedSQLCollectionManager implements DragonCollectionManager
         return dragon;
     }
 
-
     @Override
-    public boolean removeAllByAge(long age) {
+    public boolean removeAll(List<Dragon> dragons) {
         boolean flag = false;
         lock.writeLock().lock();
-        List<Dragon> dragons = collection
-                .stream()
-                .filter(dragon -> dragon.getAge() == age)
-                .toList();
         if (dao.delete(dragons) != SQLDragonDAO.ERROR_CODE) {
             collection.removeAll(dragons);
             flag = true;
+            notifyObservers();
         }
         lock.writeLock().unlock();
         return flag;
@@ -162,5 +169,21 @@ public class SynchronizedSQLCollectionManager implements DragonCollectionManager
         );
         lock.readLock().unlock();
         return info;
+    }
+
+    @Override
+    public void registerObserver(Observer<List<Dragon>> observer) {
+        this.observers.add(observer);
+    }
+
+    @Override
+    public void notifyObservers() {
+        List<Dragon> collectionCopy = new ArrayList<>(collection);
+        this.observers.forEach(observer -> observer.update(collectionCopy));
+    }
+
+    @Override
+    public void removeObserver(Observer<List<Dragon>> observer) {
+        this.observers.remove(observer);
     }
 }

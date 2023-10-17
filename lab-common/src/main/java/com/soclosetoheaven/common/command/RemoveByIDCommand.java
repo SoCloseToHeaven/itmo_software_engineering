@@ -1,14 +1,14 @@
 package com.soclosetoheaven.common.command;
 
-import com.soclosetoheaven.common.collectionmanagers.DragonCollectionManager;
-import com.soclosetoheaven.common.exceptions.InvalidAccessException;
-import com.soclosetoheaven.common.exceptions.InvalidCommandArgumentException;
-import com.soclosetoheaven.common.exceptions.InvalidRequestException;
-import com.soclosetoheaven.common.exceptions.ManagingException;
+import com.soclosetoheaven.common.collectionmanager.DragonCollectionManager;
+import com.soclosetoheaven.common.exception.InvalidAccessException;
+import com.soclosetoheaven.common.exception.InvalidCommandArgumentException;
+import com.soclosetoheaven.common.exception.InvalidRequestException;
+import com.soclosetoheaven.common.exception.ManagingException;
 import com.soclosetoheaven.common.model.Dragon;
 import com.soclosetoheaven.common.net.auth.User;
 import com.soclosetoheaven.common.net.auth.UserManager;
-import com.soclosetoheaven.common.net.factory.ResponseFactory;
+import com.soclosetoheaven.common.net.messaging.Messages;
 import com.soclosetoheaven.common.net.messaging.Request;
 import com.soclosetoheaven.common.net.messaging.RequestBody;
 import com.soclosetoheaven.common.net.messaging.Response;
@@ -16,11 +16,13 @@ import com.soclosetoheaven.common.net.messaging.Response;
 
 public class RemoveByIDCommand extends AbstractCommand{
 
+    public static final String NAME = "remove_by_id";
+
     private final DragonCollectionManager collectionManager;
 
     private final UserManager userManager;
     public RemoveByIDCommand(DragonCollectionManager collectionManager, UserManager userManager) {
-        super("remove_by_id");
+        super(NAME);
         this.collectionManager = collectionManager;
         this.userManager = userManager;
     }
@@ -38,12 +40,12 @@ public class RemoveByIDCommand extends AbstractCommand{
         int id = Integer.parseInt(args[FIRST_ARG]);
         Dragon dragon = collectionManager.getByID(id);
         if (dragon == null)
-            throw new InvalidRequestException("No such element!");
+            throw new InvalidRequestException(Messages.NO_SUCH_ELEMENT.key);
         if (!user.isAdmin() && dragon.getCreatorId() != user.getID())
             throw new InvalidAccessException();
         if (!collectionManager.removeByID(id))
-            throw new InvalidRequestException("Unsuccessfully!");
-        return ResponseFactory.createResponse("Successfully deleted!");
+            throw new InvalidRequestException(Messages.UNSUCCESSFULLY.key);
+        return new Response(Messages.SUCCESSFULLY.key);
     }
 
     @Override

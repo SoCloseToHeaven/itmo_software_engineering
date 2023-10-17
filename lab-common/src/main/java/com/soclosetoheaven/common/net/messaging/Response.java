@@ -8,13 +8,16 @@ public class Response implements Serializable {
     private final static long serialVersionUID = 9511113;
 
     private final String description;
+
     public Response(String description) {
         this.description = description;
     }
 
+
     public String getDescription() {
         return description;
     }
+
 
     @Override
     public String toString() {

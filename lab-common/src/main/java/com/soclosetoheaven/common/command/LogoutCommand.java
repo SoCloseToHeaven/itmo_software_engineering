@@ -1,8 +1,6 @@
 package com.soclosetoheaven.common.command;
 
-import com.soclosetoheaven.common.exceptions.ManagingException;
-import com.soclosetoheaven.common.exceptions.UnauthorizedException;
-import com.soclosetoheaven.common.net.auth.AuthCredentials;
+import com.soclosetoheaven.common.exception.ManagingException;
 import com.soclosetoheaven.common.net.messaging.Request;
 import com.soclosetoheaven.common.net.messaging.RequestBody;
 import com.soclosetoheaven.common.net.messaging.Response;
@@ -10,8 +8,9 @@ import com.soclosetoheaven.common.net.messaging.Response;
 public class LogoutCommand extends AbstractCommand{
 
 
+    public static final String NAME = "logout";
     public LogoutCommand() {
-        super("logout");
+        super(NAME);
     }
 
     @Override
@@ -20,12 +19,12 @@ public class LogoutCommand extends AbstractCommand{
     }
 
     @Override
-    public Request toRequest(String[] args) throws ManagingException {
-        throw new UnauthorizedException();
+    public Request toRequest(String[] args) {
+        return null;
     }
 
     @Override
-    String getUsage() {
+    public String getUsage() {
         return "logout - is used to logout from your sign";
     }
 }

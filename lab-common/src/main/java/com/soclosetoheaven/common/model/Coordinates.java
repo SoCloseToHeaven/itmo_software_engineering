@@ -1,7 +1,7 @@
 package com.soclosetoheaven.common.model;
 
 
-import com.soclosetoheaven.common.exceptions.InvalidFieldValueException;
+import com.soclosetoheaven.common.exception.InvalidFieldValueException;
 import com.soclosetoheaven.common.util.AbstractValidator;
 
 import java.io.Serial;
@@ -18,7 +18,7 @@ public class Coordinates  implements Serializable {
 
     private Integer x;
 
-    private double y;
+    private int y;
 
     /**
      * creates object and validate its fields via {@link #VALIDATOR#validate()}
@@ -26,7 +26,7 @@ public class Coordinates  implements Serializable {
      * @param startY can't be greater than {@link #VALIDATOR#Y_MAX_VALUE}
      */
 
-    public Coordinates(Integer startX, double startY) {
+    public Coordinates(Integer startX, int startY) {
         this.x = startX;
         this.y = startY;
         VALIDATOR.validate(this);
@@ -37,11 +37,11 @@ public class Coordinates  implements Serializable {
         return x;
     }
 
-    public double getY() {
+    public int getY() {
         return y;
     }
 
-    public void setCoordinates(Integer x, double y) {
+    public void setCoordinates(Integer x, int y) {
         VALIDATOR.validateX(x);
         VALIDATOR.validateY(y);
         this.x = x;
@@ -49,7 +49,7 @@ public class Coordinates  implements Serializable {
     }
     @Override
     public String toString() {
-        return "[%s, %f]".formatted(String.valueOf(x),y);
+        return "[%s, %s]".formatted(String.valueOf(x),y);
     }
 
 
@@ -57,7 +57,12 @@ public class Coordinates  implements Serializable {
         @Serial
         private static final long serialVersionUID = -55221488786L;
 
-        private static final double Y_MAX_VALUE = 36.0;
+        public static final int X_MIN_VALUE = 0; // TODO: проверить, что будет если вписать при создании объекта 0
+        public static final int X_MAX_VALUE = 3782;
+
+        public static final int Y_MAX_VALUE = 2274;
+
+        public static final int Y_MIN_VALUE = 0;
         @Override
         public void validate(Coordinates cords) {
             validateX(cords.x);
@@ -70,7 +75,9 @@ public class Coordinates  implements Serializable {
          * @throws InvalidFieldValueException if value is invalid
          */
         public void validateX(Integer x) {
-            AbstractValidator.checkIfNull(x, "Field X can't be null");
+            AbstractValidator.checkIfNull(x, "Invalid Field Value");
+            if (!(x >= X_MIN_VALUE && x <= X_MAX_VALUE))
+                throw new InvalidFieldValueException("Invalid Field Value");
         }
 
         /**
@@ -78,9 +85,9 @@ public class Coordinates  implements Serializable {
          * @param y value to validate
          * @throws InvalidFieldValueException if value is invalid
          */
-        public void validateY(double y) {
-            if (y >= Y_MAX_VALUE)
-                throw new InvalidFieldValueException("Field Y can't be greater than 36");
+        public void validateY(int y) {
+            if (!(y <= Y_MAX_VALUE && y >= Y_MIN_VALUE))
+                throw new InvalidFieldValueException("Invalid Field Value");
         }
     }
 
@@ -89,7 +96,7 @@ public class Coordinates  implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Coordinates that = (Coordinates) o;
-        return Double.compare(that.y, y) == 0 && x.equals(that.x);
+        return that.y == y && x.equals(that.x);
     }
 
     @Override

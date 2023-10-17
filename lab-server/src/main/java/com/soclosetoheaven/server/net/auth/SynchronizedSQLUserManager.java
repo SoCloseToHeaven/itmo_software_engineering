@@ -1,6 +1,6 @@
 package com.soclosetoheaven.server.net.auth;
 
-import com.soclosetoheaven.common.exceptions.ManagingException;
+import com.soclosetoheaven.common.exception.ManagingException;
 import com.soclosetoheaven.common.net.auth.AuthCredentials;
 import com.soclosetoheaven.common.net.auth.User;
 import com.soclosetoheaven.common.net.messaging.RequestBody;
@@ -41,7 +41,7 @@ public class SynchronizedSQLUserManager extends SQLUserManager{
     }
 
     @Override
-    public User getUserByID(Long id) {
+    public User getUserByID(int id) {
         lock.readLock().lock();
         try {
             return super.getUserByID(id);

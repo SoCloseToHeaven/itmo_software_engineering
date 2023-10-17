@@ -35,7 +35,7 @@ public class JDBCDragonDAO extends SQLDragonDAO {
         try (PreparedStatement statement = connection.prepareStatement(Query.CREATE.query)) {
             statement.setString(NAME_INDEX, dragon.getName());
             statement.setInt(COORDINATE_X_INDEX, dragon.getCoordinates().getX());
-            statement.setDouble(COORDINATE_Y_INDEX, dragon.getCoordinates().getY());
+            statement.setInt(COORDINATE_Y_INDEX, dragon.getCoordinates().getY());
             statement.setDate(DATE_INDEX, new Date(dragon.getCreationDate().getTime()));
             statement.setLong(AGE_INDEX, dragon.getAge());
             statement.setString(DESCRIPTION_INDEX, dragon.getDescription());
@@ -62,7 +62,7 @@ public class JDBCDragonDAO extends SQLDragonDAO {
         while(set.next()) {
             int id = set.getInt("id");
             String name = set.getString("name");
-            Coordinates cords = new Coordinates(set.getInt("coordinate_x"), set.getDouble("coordinate_y"));
+            Coordinates cords = new Coordinates(set.getInt("coordinate_x"), set.getInt("coordinate_y"));
             java.util.Date date = new java.util.Date(set.getDate("creation_date").getTime());
             Long age = set.getLong("age");
             String description = set.getString("description");

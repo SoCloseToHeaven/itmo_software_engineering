@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 import com.soclosetoheaven.common.model.Dragon;
-import com.soclosetoheaven.common.exceptions.InvalidFieldValueException;
+import com.soclosetoheaven.common.exception.InvalidFieldValueException;
 
 import java.io.*;
 import java.util.ArrayList;

@@ -1,8 +1,6 @@
 package com.soclosetoheaven.common.io;
 
 
-import com.soclosetoheaven.common.util.TerminalColors;
-
 import java.io.*;
 import java.util.LinkedList;
 
@@ -28,7 +26,8 @@ public class BasicIO {
      * default BasicClientIO constructor
      */
     public BasicIO() {
-        this(System.in, System.out);
+        this.writer = null;
+        this.errWriter = new BufferedWriter(new OutputStreamWriter(System.err));
     }
 
     /**
@@ -84,38 +83,22 @@ public class BasicIO {
      */
     public String read() {
         try {
-            String input;
-            BufferedReader reader = stack.getLast();
+            String line;
             do {
-                input = reader.readLine();
-                if (input == null) {
-                    //stream ended
-                    //move to next stream
+                line = stack.getLast().readLine();
+                if (line == null) {
                     removeAndClose();
                     continue;
                 }
                 break;
-            } while (stack.size() > 0);
-            if (stack.size() == 0) {
-                writeErr("All streams ended, stopping program");
-                System.exit(-1);
-            }
-            return input;
+            } while (!stack.isEmpty());
+            return line;
         } catch (IOException e) {
-            return read();
+            return null;
         }
     }
 
 
-    /**
-     *
-     * @param message that will be written in output stream before reading data from input stream
-     * @return String read from input stream
-     */
-    public String read(String message) {
-        this.write(message);
-        return this.read();
-    }
 
 
 
@@ -130,14 +113,9 @@ public class BasicIO {
     /**
      * removes last stream from {@link #stack}
      */
-    public void removeAndClose() {
-        try {
-            stack.getLast().close();
-            remove();
-        } catch (IOException e) {
-            writeErr("%s: %s%n".formatted("Something went wrong with userIO when closing stream", e.getMessage()));
-            System.exit(-1);
-        }
+    public void removeAndClose() throws IOException {
+        stack.getLast().close();
+        remove();
     }
 
     public BufferedReader getFirstReader() {
@@ -148,51 +126,9 @@ public class BasicIO {
         stack.removeLast();
     }
 
-    // костыльный момент, надо переделать
-    public String stdRead() {
-        String input;
-        try {
-            BufferedReader stdReader = getFirstReader();
-            input = stdReader.readLine();
-            if (input == null) {
-                stdReader.close();
-                throw new IOException("Default stream ended, no option to continue program");
-            }
-            return input;
-        } catch (IOException e) {
-            writeErr(e.getMessage());
-            System.exit(-1);
-        }
-        return "Something went wrong with userIO";
-    }
-    public String stdRead(String message) {
-        this.write(message);
-        return this.stdRead();
-    }
 
-    public String stdReadLineWithNull() {
-        String line = stdRead();
-        return (line.isEmpty()) ? null : line;
-    }
-
-
-    public String stdReadLineWithNull(String message) {
-        this.write(message);
-        return this.stdReadLineWithNull();
-    }
 
     public void writeErr(Object obj) {
-        try {
-            errWriter.write(TerminalColors.setColor(
-                    obj.toString(),
-                    TerminalColors.RED)
-            );
-            errWriter.newLine();
-            errWriter.flush();
-        } catch (IOException e) {
-            System.exit(-33);
-        } catch (NullPointerException e) {
-            writeErr("EXCEPTION MESSAGE IS NULL");
-        }
+
     }
 }
