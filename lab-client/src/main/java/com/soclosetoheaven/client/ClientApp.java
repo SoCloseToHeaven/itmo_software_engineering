@@ -6,19 +6,21 @@ package com.soclosetoheaven.client;
  */
 public class ClientApp {
 
-    /**
-     * private class-constructor
-     */
-    private ClientApp() {
-        throw new UnsupportedOperationException("This is utility class!");
-    }
+    private final static int FIRST_ARG = 0;
 
-    /**
-     * main method, runs ConsoleClient
-     * @param args command-string arguments
-     */
+    private final static int PORT_LOWER_LIMIT = 1024;
+
+    private final static int PORT_UPPER_LIMIT = 65535;
     public static void main(String[] args){
-        ClientInstance client = new ClientInstance();
-        client.run();
+        if (System.console() == null)
+            return;
+        int port;
+        if (args.length < 1 || !args[FIRST_ARG].chars().allMatch(Character::isDigit))
+            return;
+        port = Integer.parseInt(args[FIRST_ARG]);
+        if (port < PORT_LOWER_LIMIT || port > PORT_UPPER_LIMIT)
+            return;
+        ClientInstance client = new ClientInstance(port);
+        client.launch();
     }
 }

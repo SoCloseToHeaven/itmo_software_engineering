@@ -3,13 +3,15 @@ package com.soclosetoheaven.common.util;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
+import com.soclosetoheaven.common.model.Dragon;
 import com.soclosetoheaven.common.exceptions.InvalidFieldValueException;
-import com.soclosetoheaven.common.models.Dragon;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
+@Deprecated
 public class JSONFileManager {
     /**
      * input/output file
@@ -51,7 +53,7 @@ public class JSONFileManager {
             ArrayList<Dragon> dragons = parser.parse(this.fileData.toString());
             dragons.removeIf(dragon -> {
                 try {
-                    Dragon.VALIDATOR.validate(dragon);
+                    Dragon.Validator.validate(dragon);
                 } catch (InvalidFieldValueException e) {
                     System.err.printf("Object: %s - can't be added due to invalid field values%n", dragon.toString());
                     return true;
@@ -70,7 +72,7 @@ public class JSONFileManager {
      * @param collection that will be saved to file
      * @return true if successfully saved, false if else
      */
-    public boolean saveToFile(ArrayList<Dragon> collection) {
+    public boolean saveToFile(List<Dragon> collection) {
         try (FileOutputStream out = new FileOutputStream(file)) {
             out.write(writer.parse(collection).getBytes());
         } catch (IOException e) {
@@ -89,7 +91,7 @@ public class JSONFileManager {
          */
         private final Gson gson = new Gson();
 
-        public String parse(ArrayList<Dragon> collection) {
+        public String parse(List<Dragon> collection) {
             return gson.toJson(collection);
         }
     }
